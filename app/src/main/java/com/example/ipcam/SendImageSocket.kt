@@ -23,7 +23,6 @@ class SendImageSocket(private val imageQueue: BlockingQueue<ByteArray>) : Runnab
                 dataOutputStream.write(bytes)
             }
         } catch (e: IOException) {
-            // TODO: Handle this
             e.printStackTrace()
         }
         finally {

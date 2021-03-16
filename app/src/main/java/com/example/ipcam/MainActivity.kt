@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
 
         socketThread.start()
 
-        var last_ts = 0L
+        var lastTs = 0L
 
         mImageReader = ImageReader.newInstance(size.width, size.height, format, 1)
         mImageReader.setOnImageAvailableListener({ reader ->
@@ -78,8 +78,8 @@ class MainActivity : AppCompatActivity() {
             buffer[bytes]
 
             val curr = image.timestamp
-            Log.d(TAG, "frame rate " + 1000/((curr - last_ts) / 1000000) + " fps")
-            last_ts = curr
+            Log.d(TAG, "frame rate " + 1000/((curr - lastTs) / 1000000) + " fps")
+            lastTs = curr
 
             imageQueue.offer(bytes)
             image.close()

@@ -74,7 +74,7 @@ class CameraController(private val context: Context, private val outPutSurfaces:
     }
 
     private fun startPreview() {
-        mCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+        mCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
         for (surface in outPutSurfaces) {
             mCaptureRequestBuilder.addTarget(surface)
         }

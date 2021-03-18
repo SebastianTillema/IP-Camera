@@ -16,9 +16,9 @@ import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 
-
 class MainActivity : AppCompatActivity() {
     private val TAG = "THIS_IS_MY_TAG"
+
     // configs
     private val size = Size(1920, 1080)
     private val format = ImageFormat.JPEG
@@ -67,9 +67,10 @@ class MainActivity : AppCompatActivity() {
         imageQueue.offer(bytes)
     }
 
-    private fun getPreviewSurface() : Surface {
+    private fun getPreviewSurface(): Surface {
         val mTextureView: TextureView = findViewById<TextureView>(R.id.textureViewIdTest)
-        while (!mTextureView.isAvailable) {} // TODO better options than busy waiting
+        while (!mTextureView.isAvailable) {
+        } // TODO better options than busy waiting
 
         val surfaceTexture: SurfaceTexture = mTextureView.surfaceTexture!!
         return Surface(surfaceTexture)

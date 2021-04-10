@@ -1,5 +1,6 @@
 package com.example.ipcam
 
+import android.content.pm.ActivityInfo
 import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
 import android.media.Image
@@ -7,11 +8,13 @@ import android.media.ImageReader
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import android.util.Size
 import android.view.Surface
 import android.view.TextureView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.ipcam.camera.CameraController
+import com.example.ipcam.camera.SendImageTCP
+import com.example.ipcam.camera.SendImageUDP
 import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
@@ -24,16 +27,21 @@ class MainActivity : AppCompatActivity() {
     private val format = ImageFormat.JPEG
 
     private val imageQueue: BlockingQueue<ByteArray> = ArrayBlockingQueue(4)
-    private val socketThread = Thread(SendImageSocket(imageQueue))
+    private val socketThread = Thread(SendImageTCP(imageQueue))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Lock the orientation to portrait (for now)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+
         val surface = initImageReaderSurface()
         val cameraController = CameraController(this, listOf(surface))
-
         socketThread.start()
+
+        //Accelerometer(this)
+
     }
 
     override fun onDestroy() {
@@ -62,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         buffer[bytes]
 
         val timestamp = image.timestamp
-        Log.d(TAG, "frame rate " + 1000 / ((timestamp - lastTimestamp) / 1000000) + " fps")
+        //Log.d(TAG, "frame rate " + 1000 / ((timestamp - lastTimestamp) / 1000000) + " fps")
         lastTimestamp = timestamp
         imageQueue.offer(bytes)
     }

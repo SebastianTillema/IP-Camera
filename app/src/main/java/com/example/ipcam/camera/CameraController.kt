@@ -1,4 +1,4 @@
-package com.example.ipcam
+package com.example.ipcam.camera
 
 import android.Manifest
 import android.content.Context
@@ -119,6 +119,4 @@ class CameraController(private val context: Context, private val outPutSurfaces:
             //Log.d(TAG, "stall duration; size $s time $res")
         }
     }
-
-
 }

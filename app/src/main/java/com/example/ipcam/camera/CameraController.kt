@@ -8,11 +8,13 @@ import android.hardware.camera2.*
 import android.hardware.camera2.params.StreamConfigurationMap
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.Log
 import android.util.Size
 import android.view.Surface
 import androidx.core.app.ActivityCompat
 
 class CameraController(private val context: Context, private val outPutSurfaces: List<Surface>) {
+    private val TAG = "THIS_IS_MY_TAG"
 
     var size = Size(1920, 1080)
     var format = ImageFormat.JPEG
@@ -86,7 +88,7 @@ class CameraController(private val context: Context, private val outPutSurfaces:
             }
 
             override fun onConfigureFailed(session: CameraCaptureSession) {
-                // TODO
+                Log.d(TAG, "error on configure")
             }
         }, null)
     }
@@ -102,6 +104,10 @@ class CameraController(private val context: Context, private val outPutSurfaces:
     }
     fun startCapture() {
         // TODO
+    }
+    fun destroy() {
+//        mPreviewCaptureSession.close()
+//        mCameraDevice.close()
     }
 
 

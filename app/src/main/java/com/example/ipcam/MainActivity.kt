@@ -29,15 +29,17 @@ class MainActivity : AppCompatActivity() {
     private val imageQueue: BlockingQueue<ByteArray> = ArrayBlockingQueue(4)
     private val socketThread = Thread(SendImageTCP(imageQueue))
 
+    private lateinit var mCameraController: CameraController
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // Lock the orientation to portrait (for now)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-
+        //val previewSurface = getPreviewSurface()
         val surface = initImageReaderSurface()
-        val cameraController = CameraController(this, listOf(surface))
+        mCameraController = CameraController(this, listOf(surface))
         socketThread.start()
 
         //Accelerometer(this)
@@ -47,6 +49,8 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         socketThread.interrupt()
+        mCameraController.destroy()
+
     }
 
     private fun initImageReaderSurface(): Surface {

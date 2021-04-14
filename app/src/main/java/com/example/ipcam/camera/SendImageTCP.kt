@@ -31,6 +31,7 @@ class SendImageTCP(private val imageQueue: BlockingQueue<ByteArray>) : Runnable 
             Log.d(TAG, e.toString())
             e.printStackTrace()
         } finally {
+            Log.d(TAG, "clean up socket")
             outputStream?.close()
             socket?.close()
         }

@@ -26,9 +26,6 @@ class MainActivity : AppCompatActivity() {
     private val size = Size(1920, 1080)
     private val format = ImageFormat.JPEG
 
-    private val imageQueue: BlockingQueue<ByteArray> = ArrayBlockingQueue(4)
-    private val socketThread = Thread(SendImageTCP(imageQueue))
-
     private lateinit var mCameraController: CameraController
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,54 +34,17 @@ class MainActivity : AppCompatActivity() {
 
         // Lock the orientation to portrait (for now)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-        //val previewSurface = getPreviewSurface()
-        val surface = initImageReaderSurface()
-        mCameraController = CameraController(this, listOf(surface))
-        socketThread.start()
 
+//        val previewSurface = getPreviewSurface()
+//        val surface = initImageReaderSurface()
+        mCameraController = CameraController(this)
         //Accelerometer(this)
 
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        socketThread.interrupt()
         mCameraController.destroy()
 
-    }
-
-    private fun initImageReaderSurface(): Surface {
-        val imageReaderThread = HandlerThread("imageReaderThread").apply { start() }
-        val imageReaderHandler = Handler(imageReaderThread.looper)
-        val mImageReader = ImageReader.newInstance(size.width, size.height, format, 1)
-
-        mImageReader.setOnImageAvailableListener({ reader ->
-            val image: Image = reader.acquireNextImage()
-            sendImageOnSocket(image)
-            image.close()
-        }, imageReaderHandler)
-
-        return mImageReader.surface
-    }
-
-    private var lastTimestamp = 0L
-    private fun sendImageOnSocket(image: Image) {
-        val buffer: ByteBuffer = image.planes[0].buffer // jpeg only uses a single plane
-        val bytes = ByteArray(buffer.capacity())
-        buffer[bytes]
-
-        val timestamp = image.timestamp
-        //Log.d(TAG, "frame rate " + 1000 / ((timestamp - lastTimestamp) / 1000000) + " fps")
-        lastTimestamp = timestamp
-        imageQueue.offer(bytes)
-    }
-
-    private fun getPreviewSurface(): Surface {
-        val mTextureView: TextureView = findViewById<TextureView>(R.id.textureViewIdTest)
-        while (!mTextureView.isAvailable) {
-        } // TODO better options than busy waiting
-
-        val surfaceTexture: SurfaceTexture = mTextureView.surfaceTexture!!
-        return Surface(surfaceTexture)
     }
 }

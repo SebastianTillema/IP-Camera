@@ -6,24 +6,33 @@ import android.content.pm.PackageManager
 import android.graphics.ImageFormat
 import android.hardware.camera2.*
 import android.hardware.camera2.params.StreamConfigurationMap
+import android.media.Image
+import android.media.ImageReader
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.util.Size
 import android.view.Surface
 import androidx.core.app.ActivityCompat
+import java.nio.ByteBuffer
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.BlockingQueue
 
-class CameraController(private val context: Context, private val outPutSurfaces: List<Surface>) {
+class CameraController(private val context: Context) {
     private val TAG = "THIS_IS_MY_TAG"
 
     var size = Size(1920, 1080)
     var format = ImageFormat.JPEG
 
-    private lateinit var mCameraDevice: CameraDevice
 
+    private val imageQueue: BlockingQueue<ByteArray> = ArrayBlockingQueue(4)
+    private val socketThread = Thread(SendImageTCP(imageQueue))
+
+    private var outPutSurfaces: MutableList<Surface>
+
+    private lateinit var mCameraDevice: CameraDevice
     private lateinit var mBackgroundHandlerThread: HandlerThread
     private lateinit var cameraBackgroundHandler: Handler
-
     private lateinit var mPreviewCaptureSession: CameraCaptureSession
     private lateinit var mCaptureRequestBuilder: CaptureRequest.Builder
 
@@ -43,7 +52,10 @@ class CameraController(private val context: Context, private val outPutSurfaces:
     }
 
     init {
+        outPutSurfaces = mutableListOf(initImageReaderSurface())
         setupCamera()
+
+        socketThread.start()
     }
 
     private fun setupCamera(): Boolean {
@@ -93,6 +105,33 @@ class CameraController(private val context: Context, private val outPutSurfaces:
         }, null)
     }
 
+    private fun initImageReaderSurface(): Surface {
+        val imageReaderThread = HandlerThread("imageReaderThread").apply { start() }
+        val imageReaderHandler = Handler(imageReaderThread.looper)
+        val mImageReader = ImageReader.newInstance(size.width, size.height, format, 1)
+
+        mImageReader.setOnImageAvailableListener({ reader ->
+            val image: Image = reader.acquireNextImage()
+            sendImageOnSocket(image)
+            image.close()
+        }, imageReaderHandler)
+
+        return mImageReader.surface
+    }
+
+    private var lastTimestamp = 0L
+    private fun sendImageOnSocket(image: Image) {
+        val buffer: ByteBuffer = image.planes[0].buffer // jpeg only uses a single plane
+        val bytes = ByteArray(buffer.capacity())
+        buffer[bytes]
+
+        val timestamp = image.timestamp
+        //Log.d(TAG, "frame rate " + 1000 / ((timestamp - lastTimestamp) / 1000000) + " fps")
+        lastTimestamp = timestamp
+        imageQueue.offer(bytes)
+    }
+
+
     private fun getCameraPermission(): Boolean {
         // TODO
         return false
@@ -106,6 +145,7 @@ class CameraController(private val context: Context, private val outPutSurfaces:
         // TODO
     }
     fun destroy() {
+        socketThread.interrupt()
 //        mPreviewCaptureSession.close()
 //        mCameraDevice.close()
     }
